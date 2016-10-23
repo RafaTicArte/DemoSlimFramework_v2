@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-10-2016 a las 13:37:54
+-- Tiempo de generación: 21-10-2016 a las 14:43:37
 -- Versión del servidor: 10.1.16-MariaDB
 -- Versión de PHP: 5.6.24
 
@@ -49,16 +49,17 @@ INSERT INTO `acontecimientos` (`id`, `nombre`, `email`) VALUES
 CREATE TABLE `eventos` (
   `id` int(11) NOT NULL,
   `id_acontecimiento` int(11) NOT NULL,
-  `nombre` varchar(256) NOT NULL
+  `nombre` varchar(256) NOT NULL,
+  `email` varchar(256) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Volcado de datos para la tabla `eventos`
 --
 
-INSERT INTO `eventos` (`id`, `id_acontecimiento`, `nombre`) VALUES
-(1, 2, 'Charla Fernán Núñez TV'),
-(2, 2, 'Charla Gavisa');
+INSERT INTO `eventos` (`id`, `id_acontecimiento`, `nombre`, `email`) VALUES
+(1, 2, 'Charla Fernán Núñez TV', ''),
+(2, 2, 'Charla Gavisa', 'hola@gavisa.es');
 
 --
 -- Índices para tablas volcadas
@@ -85,7 +86,7 @@ ALTER TABLE `eventos`
 -- AUTO_INCREMENT de la tabla `acontecimientos`
 --
 ALTER TABLE `acontecimientos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT de la tabla `eventos`
 --

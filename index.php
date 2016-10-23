@@ -50,13 +50,13 @@ $app->response->headers->set('Content-Type', 'application/json; charset=utf-8');
 /**
  * Operación GET de recuperación de un recurso mediante su identificador
  */
-$app->get('/acontecimiento/:id', function ($id) {
+$app->get('/acontecimiento/:param_id', function ($param_id) {
    // Comprueba el parámetro de entrada
-   $id = intval($id);
+   $param_id = intval($param_id);
    
    // Sentencias SQL
-   $sql_acontecimiento = "SELECT * FROM acontecimientos WHERE id=:id";
-   $sql_eventos = "SELECT * FROM eventos WHERE id_acontecimiento=:id";
+   $sql_acontecimiento = "SELECT * FROM acontecimientos WHERE id=:bind_id";
+   $sql_eventos = "SELECT * FROM eventos WHERE id_acontecimiento=:bind_id";
 
    try{
       // Conecta con la base de datos
@@ -65,7 +65,7 @@ $app->get('/acontecimiento/:id', function ($id) {
       if ($db != null){
          // Prepara y ejecuta la sentencia
          $stmt_acontecimiento = $db->prepare($sql_acontecimiento);
-         $stmt_acontecimiento->bindParam("id", $id);
+         $stmt_acontecimiento->bindParam("bind_id", $param_id);
          $stmt_acontecimiento->execute();
          
          // Obtiene un array asociativo con un registro y elimina los valores vacíos
@@ -80,11 +80,13 @@ $app->get('/acontecimiento/:id', function ($id) {
 
             // Prepara y ejecuta la sentencia
             $stmt_eventos = $db->prepare($sql_eventos);
-            $stmt_eventos->bindParam("id", $id);
+            $stmt_eventos->bindParam("bind_id", $param_id);
             $stmt_eventos->execute();
 
-            // Obtiene un array con todos los registros
-            $record_eventos = $stmt_eventos->fetchAll(PDO::FETCH_ASSOC);
+            // Obtiene uno a uno los registros para eliminar los valores vacíos en ellos
+            $record_eventos = array();
+            while ($record = $stmt_eventos->fetch(PDO::FETCH_ASSOC))
+               array_push($record_eventos, array_filter($record));
             
             if ($record_eventos != false){
                $output .= ',"eventos":';
@@ -130,7 +132,7 @@ $app->post('/acontecimiento/add', function () {
       $acontecimiento['nombre'] = (isset($acontecimiento['nombre'])) ? $acontecimiento['nombre'] : '';
       
       // Sentencias SQL
-      $sql_insert = "INSERT INTO acontecimientos (nombre) VALUES (:nombre)";
+      $sql_insert = "INSERT INTO acontecimientos (nombre) VALUES (:bind_nombre)";
    
       try {
          // Conecta con la base de datos
@@ -139,7 +141,7 @@ $app->post('/acontecimiento/add', function () {
          if ($db != null){
             // Prepara y ejecuta de la sentencia
             $stmt_insert = $db->prepare($sql_insert);
-            $stmt_insert->bindParam("nombre", $acontecimiento['nombre']);
+            $stmt_insert->bindParam("bind_nombre", $acontecimiento['nombre']);
             $stmt_insert->execute();
 
             echo '{"error": 1, "message": "Acontecimiento insertado correctamente con el id '.$db->lastInsertId().'"}';
