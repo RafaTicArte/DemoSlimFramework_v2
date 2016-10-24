@@ -65,13 +65,16 @@ $app->get('/acontecimiento/:param_id', function ($param_id) {
       if ($db != null){
          // Prepara y ejecuta la sentencia
          $stmt_acontecimiento = $db->prepare($sql_acontecimiento);
-         $stmt_acontecimiento->bindParam("bind_id", $param_id);
+         $stmt_acontecimiento->bindParam(":bind_id", $param_id, PDO::PARAM_INT);
          $stmt_acontecimiento->execute();
          
-         // Obtiene un array asociativo con un registro y elimina los valores vacíos
-         $record_acontecimiento = array_filter($stmt_acontecimiento->fetch(PDO::FETCH_ASSOC));
-         
+         // Obtiene un array asociativo con un registro
+         $record_acontecimiento = $stmt_acontecimiento->fetch(PDO::FETCH_ASSOC);
+
          if ($record_acontecimiento != false){
+            // Elimina los valores vacíos del registro
+            $record_acontecimiento = array_filter($record_acontecimiento);
+
             $output = '{"acontecimiento":';
             
             // Convierte el array a formato JSON con caracteres Unicode y modo tabulado
@@ -80,7 +83,7 @@ $app->get('/acontecimiento/:param_id', function ($param_id) {
 
             // Prepara y ejecuta la sentencia
             $stmt_eventos = $db->prepare($sql_eventos);
-            $stmt_eventos->bindParam("bind_id", $param_id);
+            $stmt_eventos->bindParam(":bind_id", $param_id, PDO::PARAM_INT);
             $stmt_eventos->execute();
 
             // Obtiene uno a uno los registros para eliminar los valores vacíos en ellos
@@ -141,7 +144,7 @@ $app->post('/acontecimiento/add', function () {
          if ($db != null){
             // Prepara y ejecuta de la sentencia
             $stmt_insert = $db->prepare($sql_insert);
-            $stmt_insert->bindParam("bind_nombre", $acontecimiento['nombre']);
+            $stmt_insert->bindParam(":bind_nombre", $acontecimiento['nombre'], PDO::PARAM_STR);
             $stmt_insert->execute();
 
             echo '{"error": 1, "message": "Acontecimiento insertado correctamente con el id '.$db->lastInsertId().'"}';
