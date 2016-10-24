@@ -88,7 +88,7 @@ $app->get('/acontecimiento/:param_id', function ($param_id) {
             while ($record = $stmt_eventos->fetch(PDO::FETCH_ASSOC))
                array_push($record_eventos, array_filter($record));
             
-            if ($record_eventos != false){
+            if (sizeof($record_eventos) != 0){
                $output .= ',"eventos":';
                
                // Convierte el array a formato JSON con caracteres Unicode y modo tabulado
