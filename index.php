@@ -115,6 +115,61 @@ $app->get('/acontecimiento/:param_id', function ($param_id) {
 });
 
 /**
+ * Operación GET de recuperación de recursos mediante palabras
+ */
+$app->get('/buscar/nombre/:param_words', function ($param_words) {
+   // Comprueba el parámetro de entrada y lo separa en palabras
+   $array_words = explode(' ', $param_words);
+
+   if (sizeof($array_words) != 0) {
+      // Crea la sentencia SQL añadiendo la condición por cada palabra buscada
+      // A la palabra se le añade el carácter '%' para la búsqueda
+      // Se elimina de la sentencia el último 'AND' para evitar errores de sintaxis
+      $sql_busqueda = "SELECT id, nombre FROM acontecimientos WHERE";
+      foreach ($array_words as $clave=>$valor){
+         $array_words[$clave] = '%'.$valor.'%';
+         $sql_busqueda .= " nombre LIKE ? AND";
+      }
+      $sql_busqueda = substr($sql_busqueda, 0, -4);
+
+      try{
+         // Conecta con la base de datos
+         $db = connectionDB();
+      
+         if ($db != null){
+            // Prepara y ejecuta la sentencia
+            $stmt_busqueda = $db->prepare($sql_busqueda);
+            $stmt_busqueda->execute($array_words);
+         
+            // Obtiene un array asociativo con los registros
+            $records_busqueda = $stmt_busqueda->fetchAll(PDO::FETCH_ASSOC);
+
+            if ($records_busqueda != false){
+               $output = '{"acontecimientos":';
+            
+               // Convierte el array a formato JSON con caracteres Unicode y modo tabulado
+               // Deshabilitar JSON_PRETTY_PRINT con el servidor REST en producción
+               $output .= json_encode($records_busqueda, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+               $output .= '}';
+            
+               echo $output;
+            } else {
+               echo '{"error": -12, "message": "No se han encontrado acontecimientos"}';
+            }
+
+            // Cierra la conexión con la base de datos
+            $db = null;
+         }
+      } catch (PDOException $e) {
+         echo '{"error": -9, "message": "Excepción en la base de datos: '.$e->getMessage().'"}';
+      }
+   } else {
+      echo '{“error”:-13, “message”:”Parámetros de búsqueda incorrectos”}';
+   }
+});
+
+/**
  * Operación POST de inserción de un recurso
  */
 $app->post('/acontecimiento/add', function () {
@@ -157,6 +212,36 @@ $app->post('/acontecimiento/add', function () {
       }
    }
 });
+
+/**
+ * Hook que se lanza antes de procesar cualquier ruta del servidor REST
+ * Se puede utilizar para realizar comprobaciones de autorización
+ */
+ /*
+$app->hook('slim.before.dispatch', function(){
+   // Obtiene la aplicación con el servidor REST
+   $app = \Slim\Slim::getInstance();
+
+   // Obtiene las cabeceras de la petición recibida
+   $headers = $app->request()->headers();
+   
+   // Comprueba la autorización
+   // Como ejemplo se comprueba el campo Authorization de la cabecera de la petición
+   // Modificar el fichero .htaccess para permitir acceder al valor del campo AUTHORIZATION
+   if(!isset($headers['AUTHORIZATION'])) {
+      // Error 401: Es necesaria la autenticación
+      $app->response->headers['X-Authenticated'] = 'False';
+      $app->halt(401, '{"error":-31, "message":"Es necesario autenticarse"}');
+   } else if($headers['AUTHORIZATION'] == 'Basic 612e648bf9594adb50844cad6895f2cf') {
+      // Autenticación correcta
+      return true;
+   } else {
+      // Error 403: Autenticación incorrecta
+      $app->response->headers['X-Authenticated'] = 'False';
+      $app->halt('403', '{"error":-32; "message":"Autenticación incorrecta"}');
+   }
+});
+*/
 
 // Inicia la aplicación con el servidor REST 
 $app->run();
