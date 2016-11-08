@@ -171,6 +171,12 @@ $app->get('/buscar/nombre/:param_words', function ($param_words) {
 
 /**
  * Operación POST de inserción de un recurso
+ * Formato JSON:
+ *    { "acontecimiento": {
+ *        "nombre": "Jornadas TicArte",
+ *        "email": "info@ticarte.com"
+ *       }
+ *    }
  */
 $app->post('/acontecimiento/add', function () {
    // Obtiene la petición que ha recibido el servidor REST
@@ -187,10 +193,11 @@ $app->post('/acontecimiento/add', function () {
       echo '{"error":-21, "message": "Contenido JSON con errores"}';
    } else {
       // Comprueba los valores del contenido JSON
-      $acontecimiento['nombre'] = (isset($acontecimiento['nombre'])) ? $acontecimiento['nombre'] : '';
+      $acontecimiento['acontecimiento']['nombre'] = (!empty($acontecimiento['acontecimiento']['nombre'])) ? $acontecimiento['acontecimiento']['nombre'] : '';
+      $acontecimiento['acontecimiento']['email'] = (!empty($acontecimiento['acontecimiento']['email'])) ? $acontecimiento['acontecimiento']['email'] : '';
       
       // Sentencias SQL
-      $sql_insert = "INSERT INTO acontecimientos (nombre) VALUES (:bind_nombre)";
+      $sql_insert = "INSERT INTO acontecimientos (nombre, email) VALUES (:bind_nombre, :bind_email)";
    
       try {
          // Conecta con la base de datos
@@ -199,7 +206,8 @@ $app->post('/acontecimiento/add', function () {
          if ($db != null){
             // Prepara y ejecuta de la sentencia
             $stmt_insert = $db->prepare($sql_insert);
-            $stmt_insert->bindParam(":bind_nombre", $acontecimiento['nombre'], PDO::PARAM_STR);
+            $stmt_insert->bindParam(":bind_nombre", $acontecimiento['acontecimiento']['nombre'], PDO::PARAM_STR);
+            $stmt_insert->bindParam(":bind_email", $acontecimiento['acontecimiento']['email'], PDO::PARAM_STR);
             $stmt_insert->execute();
 
             echo '{"error": 1, "message": "Acontecimiento insertado correctamente con el id '.$db->lastInsertId().'"}';
