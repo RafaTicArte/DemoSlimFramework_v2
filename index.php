@@ -12,19 +12,28 @@
  * Función de conexión a la base de datos 
  */
 function connectionDB() {
-   // Datos
-   $dbhost = "localhost";
-   $dbuser = "root";
-   $dbpass = "";
-   $dbname = "appcontecimientos";
-   
    try {
+      // ***
+      // Conexión a base de datos MySQL
+      // ***
+
+      // Datos
+      $dbhost = "localhost";
+      $dbuser = "root";
+      $dbpass = "";
+      $dbname = "appcontecimientos";
       // Inicia conexión a la base de datos
       $dbcon = new PDO("mysql:host=$dbhost; dbname=$dbname", $dbuser, $dbpass);
       // Activa las excepciones en el controlador PDO
       $dbcon->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       // Fuerza la codificación de caracteres a UTF8
       $dbcon->exec("SET NAMES 'utf8'");
+
+      // ***
+      // Conexión a base de datos SQLite
+      // ***
+      //$dbcon = new PDO("sqlite:appcontecimientos.sqlite");
+
       // Devuelve la conexión
       return $dbcon;
    } catch (PDOException $e) {
@@ -178,7 +187,7 @@ $app->get('/buscar/nombre/:param_words', function ($param_words) {
  *       }
  *    }
  */
-$app->post('/acontecimiento/add', function () {
+$app->post('/acontecimiento', function () {
    // Obtiene la petición que ha recibido el servidor REST
    $request = \Slim\Slim::getInstance()->request();
 
@@ -225,7 +234,7 @@ $app->post('/acontecimiento/add', function () {
  * Hook que se lanza antes de procesar cualquier ruta del servidor REST
  * Se puede utilizar para realizar comprobaciones de autorización
  */
- /*
+/*
 $app->hook('slim.before.dispatch', function(){
    // Obtiene la aplicación con el servidor REST
    $app = \Slim\Slim::getInstance();
@@ -236,7 +245,10 @@ $app->hook('slim.before.dispatch', function(){
    // Comprueba la autorización
    // Como ejemplo se comprueba el campo Authorization de la cabecera de la petición
    // Modificar el fichero .htaccess para permitir acceder al valor del campo AUTHORIZATION
-   if(!isset($headers['AUTHORIZATION'])) {
+   if($app->request->isGet()) {
+      // Autenticación correcta
+      return true;
+   } else if(!isset($headers['AUTHORIZATION'])) {
       // Error 401: Es necesaria la autenticación
       $app->response->headers['X-Authenticated'] = 'False';
       $app->halt(401, '{"error":-31, "message":"Es necesario autenticarse"}');
